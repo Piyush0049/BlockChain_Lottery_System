@@ -16,6 +16,7 @@ error Raffle_TransferUnsuccessful();
 error Raffle_Not_Open();
 error checkUpkeep_Not_Needed(uint256 currentBalance, uint256 numPlayers, uint256 raffleState);
 
+
 contract Raffle is VRFConsumerBaseV2, AutomationCompatible {
     uint256 immutable i_entrancefee;
     address payable[] private s_players;
