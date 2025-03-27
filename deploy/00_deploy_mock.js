@@ -1,7 +1,7 @@
 const { network, ethers } = require("hardhat");
 const { developmentChains } = require("../helper-hardhat-config");
 
-module.exports = async function ({ getNamedAccounts, deployments }) {
+const func = async ({ getNamedAccounts, deployments }) => {
   const BASE_FEE = ethers.parseEther("0.25");
   const PRICE_FEE = 1e9;
   const { deploy, log } = deployments;
@@ -18,3 +18,6 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     // console.log(raffle);
   }
 };
+
+module.exports = func;
+module.exports.tags = ["all", "mocks"];

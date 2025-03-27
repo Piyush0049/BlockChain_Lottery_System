@@ -1,5 +1,4 @@
 require("@nomiclabs/hardhat-waffle");
-// require("@nomiclaps/hardhat-etherscan");
 require("hardhat-deploy");
 require("solidity-coverage");
 require("hardhat-gas-reporter");
@@ -41,8 +40,9 @@ module.exports = {
     enabled: true,
     outputFile: "output.txt",
     currency: "USD",
+    gasPriceApi: `https://api.etherscan.io/api?module=proxy&action=eth_gasPrice&apikey=${process.env.ETHERSCAN_API_KEY}`,
     coinmarketcap: process.env.COINMARKETCAP_API_KEY,
-    noColors: true
+    noColors: false
   },
   solidity: "0.8.28",
 };

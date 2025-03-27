@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "D:\\smart_contract_lottery\\contracts\\Raffle.sol": {
-      "lastModificationDate": 1742985439194,
-      "contentHash": "5e20e3b1b480e52d27d4f8df90a3bab3",
+      "lastModificationDate": 1743080945571,
+      "contentHash": "6950fac5f423cfaf5d19387347b82350",
       "sourceName": "contracts/Raffle.sol",
       "solcConfig": {
         "version": "0.8.28",
