@@ -12,10 +12,14 @@ import "@chainlink/contracts/src/v0.8/automation/AutomationCompatible.sol";
 // Chainlink Oracle -> Randomness, Automated Execution (Chainlink Keepers)
 
 error Raffle__SendMoreToEnterRaffle();
+event RequestedRandomWords(uint256 indexed requestId);
 error Raffle_TransferUnsuccessful();
 error Raffle_Not_Open();
-error checkUpkeep_Not_Needed(uint256 currentBalance, uint256 numPlayers, uint256 raffleState);
-
+error checkUpkeep_Not_Needed(
+    uint256 currentBalance,
+    uint256 numPlayers,
+    uint256 raffleState
+);
 
 contract Raffle is VRFConsumerBaseV2, AutomationCompatible {
     uint256 immutable i_entrancefee;
@@ -61,36 +65,36 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatible {
 
     function checkUpkeep(
         bytes memory
-    )
-        public
-        view
-        override
-        returns (bool upkeepNeeded, bytes memory )
-    {
+    ) public view override returns (bool upkeepNeeded, bytes memory) {
         bool isOpen = (s_raffle_state == RaffleState.OPEN);
         bool timePassed = (block.timestamp - s_lastTimeStamp) > i_interval;
         bool hasPlayers = s_players.length > 0;
         bool hasBalance = address(this).balance > 0;
         upkeepNeeded = (isOpen && timePassed && hasPlayers && hasBalance);
     }
- 
+
     function performUpkeep(bytes calldata) external override {
-        (bool upkeepNeeded,) = checkUpkeep("");
-        if(!upkeepNeeded){
-            revert checkUpkeep_Not_Needed(address(this).balance, s_players.length, uint256(s_raffle_state));
-        }
-        s_raffle_state = RaffleState.CALCULATING;
-        uint256 requestId = i_vrfCoordinator.requestRandomWords(
-            i_gasLane,
-            uint64(i_subscriptionId),
-            request_confirmation,
-            i_callbackGasLimit,
-            num_words
+    (bool upkeepNeeded, ) = checkUpkeep("");
+    if (!upkeepNeeded) {
+        revert checkUpkeep_Not_Needed(
+            address(this).balance,
+            s_players.length,
+            uint256(s_raffle_state)
         );
+    }
+    s_raffle_state = RaffleState.CALCULATING;
+    uint256 requestId = i_vrfCoordinator.requestRandomWords(
+        i_gasLane,
+        uint64(i_subscriptionId),
+        request_confirmation,
+        i_callbackGasLimit,
+        num_words
+    );
+    emit RequestedRandomWords(requestId);
     }
 
     function fulfillRandomWords(
-        uint256 /*requestId*/,
+        uint256,
         uint256[] memory randomWords
     ) internal override {
         s_raffle_state = RaffleState.CALCULATING;
@@ -104,7 +108,6 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatible {
         if (!success) {
             revert Raffle_TransferUnsuccessful();
         }
-
         emit winnerPicked(recentWinner);
     }
 
@@ -119,8 +122,24 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatible {
         emit raffleEnter(msg.sender);
     }
 
+    function changerafflestate() public {
+        if (s_raffle_state == RaffleState.OPEN) {
+            s_raffle_state = RaffleState.CALCULATING;
+        } else {
+            s_raffle_state = RaffleState.OPEN;
+        }
+    }
+
     function getRecentWinner() public view returns (address) {
         return recentWinner;
+    }
+
+    function getRaffleState() public view returns (RaffleState) {
+        return s_raffle_state;
+    }
+
+    function getLastTimeStamp() public view returns (uint256) {
+        return s_lastTimeStamp;
     }
 
     function getEntranceFee() public view returns (uint256) {
@@ -130,7 +149,8 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatible {
     function getPlayer(uint256 index) public view returns (address payable) {
         return s_players[index];
     }
-    function getInterval()  public view returns (uint256) {
+
+    function getInterval() public view returns (uint256) {
         return i_interval;
     }
 }
