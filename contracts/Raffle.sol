@@ -134,13 +134,17 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatible {
         return recentWinner;
     }
 
+    function getPlayers() public view returns (address payable[] memory) {
+        return s_players;
+    }
+
     function getRaffleState() public view returns (RaffleState) {
         return s_raffle_state;
     }
 
     function getLastTimeStamp() public view returns (uint256) {
         return s_lastTimeStamp;
-    }
+    }    
 
     function getEntranceFee() public view returns (uint256) {
         return i_entrancefee;

@@ -7,9 +7,9 @@ const networkConfig = {
     entranceFee: ethers.parseEther("0.01"),
     gasLane:
       "0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae",
-    subscriptionId: "0",
+    subscriptionId: "27717986899295127811168858702949635493186843711053243279688145205671846029891",
     callbackGasLimit: "500000",
-    interval: 30
+    interval: 60
   },
   31337: {
     name: "hardhat",
@@ -17,7 +17,7 @@ const networkConfig = {
     gasLane:
       "0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae",
     callbackGasLimit: "500000",
-    interval: 30
+    interval: 60
   },
 };
 

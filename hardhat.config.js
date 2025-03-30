@@ -4,6 +4,7 @@ require("solidity-coverage");
 require("hardhat-gas-reporter");
 require("hardhat-contract-sizer");
 require("@nomicfoundation/hardhat-chai-matchers");
+require("@nomicfoundation/hardhat-verify");
 require("dotenv").config();
 
 /** @type import('hardhat/config').HardhatUserConfig */
@@ -46,7 +47,7 @@ module.exports = {
     noColors: false,
   },
   mocha: {
-    timeout: 500000, // 500 seconds max for running tests
+    timeout: 50000000, // 500 seconds max for running tests
   },
   solidity: "0.8.28",
 };

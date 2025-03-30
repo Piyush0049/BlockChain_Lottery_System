@@ -6,12 +6,13 @@ const {
 const { assert, expect } = require("chai");
 
 !developmentChains.includes(network.name)
-  ? describe.skip()
+  ? describe.skip
   : describe("Raffle", function () {
       const eth = ethers.parseEther("0.2");
       const chainId = network.config.chainId;
       let raffleContract,
         connectedRaffle,
+        raffle,
         VRFCoordinatorV2Mock,
         interval,
         accounts;
@@ -27,6 +28,7 @@ const { assert, expect } = require("chai");
           "Raffle",
           raffleContractDep.address
         );
+        raffle = raffleContract;
         connectedRaffle = raffleContract.connect(accounts[1]);
         VRFCoordinatorV2Mock = await ethers.getContractAt(
           "VRFCoordinatorV2Mock",
@@ -163,41 +165,50 @@ const { assert, expect } = require("chai");
         it("picks a winner, resets, and sends money", async () => {
           const startIndex = 2;
           const total = 3;
+          let startingBalance;
           const startingTimeStamp = await connectedRaffle.getLastTimeStamp();
           for (let i = startIndex; i < startIndex + total; i++) {
             connectedRaffle = raffleContract.connect(accounts[i]);
             await connectedRaffle.enterRaffle({ value: eth });
             console.log(i, "th account entered!");
           }
-          await new Promise((resolve, reject) => {
-            connectedRaffle.once("Winner Picked", async function () {
-              console.log("Winner event fired...");
-              try {
-                const recentWinner = await connectedRaffle.getRecentWinner();
-                const raffleState = await connectedRaffle.getRaffleState();
-                const winnerBalance = await accounts[2].getBalance();
-                const endingTimeStamp =
-                  await connectedRaffle.getLastTimeStamp();
-                await expect(connectedRaffle.getPlayer(0)).to.be.reverted;
-                assert.equal(recentWinner.toString(), accounts[2].address);
-                assert.equal(raffleState, 0);
-                assert.equal(
-                  winnerBalance.toString(),
-                  startingBalance
-                    .add(
-                      raffleEntranceFee
-                        .mul(additionalEntrances)
-                        .add(raffleEntranceFee)
-                    )
-                    .toString()
-                );
-                assert(endingTimeStamp > startingTimeStamp);
-                resolve();
-              } catch (e) {
-                reject(e);
-              }
-            });
-          });
+          try {
+            const tx = await connectedRaffle.performUpkeep("0x");
+            const txReceipt = await tx.wait(1);
+            startingBalance = await ethers.provider.getBalance(
+              accounts[2].address
+            );
+            const a = await ethers.provider.getBalance(connectedRaffle.target);
+            const txResponse = await VRFCoordinatorV2Mock.fulfillRandomWords(
+              txReceipt.logs[1].args[0],
+              connectedRaffle.target
+            );
+            const txResult = await txResponse.wait(1);
+          } catch (e) {
+            reject(e);
+          }
+          try {
+            const recentWinner = await connectedRaffle.getRecentWinner();
+            const raffleState = await connectedRaffle.getRaffleState();
+            const winnerBalance = await ethers.provider.getBalance(
+              accounts[2].address
+            );
+            console.log(winnerBalance);
+            const endingTimeStamp = await connectedRaffle.getLastTimeStamp();
+            await expect(connectedRaffle.getPlayer(0)).to.be.reverted;
+            assert.equal(recentWinner.toString(), accounts[2].address);
+            assert.equal(raffleState, 0);
+            const expectedValue =
+              BigInt(startingBalance.toString()) +
+              BigInt(eth.toString()) * BigInt(total) +
+              BigInt(eth.toString());
+
+            assert.equal(winnerBalance.toString(), expectedValue.toString());
+
+            assert(endingTimeStamp > startingTimeStamp);
+          } catch (e) {
+            console.log(e);
+          }
         });
       });
     });

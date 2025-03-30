@@ -17,9 +17,13 @@
     "hardhat-contract-sizer": "^2.10.0",
     "hardhat-deploy": "^1.0.1",
     "hardhat-gas-reporter": "^2.2.2",
+    "hardhat-verify": "^1.0.0",
     "prettier": "^3.5.3",
     "prettier-plugin-solidity": "^1.4.2",
     "solhint": "^5.0.5",
     "solidity-coverage": "^0.8.14"
+  },
+  "dependencies": {
+    "@nomicfoundation/hardhat-verify": "^2.0.13"
   }
 }
