@@ -1,0 +1,36 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "contracts/Raffle.sol": {
+      "content": "// SPDX-License-Identifier: MIT\r\npragma solidity ^0.8.7;\r\n\r\ncontract Raffle {\r\n    /* Errors */\r\n    error Raffle__SendMoreToEnterRaffle();\r\n    error Raffle__RaffleNotOpen();\r\n    error Raffle__TransferFailed();\r\n\r\n    /* Type declarations */\r\n    enum RaffleState {\r\n        OPEN,\r\n        CALCULATING\r\n    }\r\n\r\n    /* State variables */\r\n    uint256 private immutable i_entranceFee;\r\n    uint256 private immutable i_interval;\r\n    uint256 private s_lastTimeStamp;\r\n    address private s_recentWinner;\r\n    address payable[] private s_players;\r\n    RaffleState private s_raffleState;\r\n\r\n    /* Events */\r\n    event RaffleEnter(address indexed player);\r\n    event WinnerPicked(address indexed winner);\r\n\r\n    /* Constructor */\r\n    constructor(uint256 entranceFee, uint256 interval) {\r\n        i_entranceFee = entranceFee;\r\n        i_interval = interval;\r\n        s_raffleState = RaffleState.OPEN;\r\n        s_lastTimeStamp = block.timestamp;\r\n    }\r\n\r\n    /* Enter the raffle */\r\n    function enterRaffle() public payable {\r\n        if (s_raffleState != RaffleState.OPEN) {\r\n            revert Raffle__RaffleNotOpen();\r\n        }\r\n        if (msg.value < i_entranceFee) {\r\n            revert Raffle__SendMoreToEnterRaffle();\r\n        }\r\n        s_players.push(payable(msg.sender));\r\n        emit RaffleEnter(msg.sender);\r\n    }\r\n\r\n    function checkUpkeep() public view returns (bool upkeepNeeded) {\r\n        bool isOpen = (s_raffleState == RaffleState.OPEN);\r\n        bool timePassed = ((block.timestamp - s_lastTimeStamp) > i_interval);\r\n        bool hasPlayers = (s_players.length > 0);\r\n        bool hasBalance = (address(this).balance > 0);\r\n        upkeepNeeded = (isOpen && hasPlayers && timePassed && hasBalance);\r\n    }\r\n\r\n    function performUpkeep() public {\r\n        if (!checkUpkeep()) {\r\n            revert(\"checkUpkeep_Not_Needed\");\r\n        }\r\n\r\n        s_raffleState = RaffleState.CALCULATING;\r\n\r\n        uint256 randomNumber = uint256(\r\n            keccak256(\r\n                abi.encodePacked(\r\n                    blockhash(block.number - 1),\r\n                    block.timestamp,\r\n                    s_players.length\r\n                )\r\n            )\r\n        );\r\n\r\n        uint256 winnerIndex = randomNumber % s_players.length;\r\n        s_recentWinner = s_players[winnerIndex];\r\n\r\n        // Reset the raffle\r\n        s_players = new address payable[](0);\r\n        s_lastTimeStamp = block.timestamp;\r\n        s_raffleState = RaffleState.OPEN;\r\n\r\n        (bool success, ) = s_recentWinner.call{value: address(this).balance}(\r\n            \"\"\r\n        );\r\n        if (!success) {\r\n            revert Raffle__TransferFailed();\r\n        }\r\n\r\n        emit WinnerPicked(s_recentWinner);\r\n    }\r\n\r\n    function getEntranceFee() public view returns (uint256) {\r\n        return i_entranceFee;\r\n    }\r\n\r\n    function getInterval() public view returns (uint256) {\r\n        return i_interval;\r\n    }\r\n\r\n    function getLastTimeStamp() public view returns (uint256) {\r\n        return s_lastTimeStamp;\r\n    }\r\n\r\n    function getRaffleState() public view returns (RaffleState) {\r\n        return s_raffleState;\r\n    }\r\n\r\n    function getRecentWinner() public view returns (address) {\r\n        return s_recentWinner;\r\n    }\r\n\r\n    function getAllPlayers() public view returns (address payable[] memory) {\r\n        return s_players;\r\n    }\r\n\r\n    function getBalance() public view returns (uint256) {\r\n        return address(this).balance;\r\n    }\r\n\r\n    function getAllPlayersCount() public view returns (uint256) {\r\n        return s_players.length;\r\n    }\r\n\r\n    function getNumberOfPlayers() public view returns (uint256) {\r\n        return s_players.length;\r\n    }\r\n\r\n    function getPlayer(uint256 index) public view returns (address) {\r\n        return s_players[index];\r\n    }\r\n}\r\n"
+    }
+  },
+  "settings": {
+    "evmVersion": "paris",
+    "optimizer": {
+      "enabled": false,
+      "runs": 200
+    },
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+          "devdoc",
+          "userdoc",
+          "storageLayout",
+          "evm.gasEstimates"
+        ],
+        "": [
+          "ast"
+        ]
+      }
+    },
+    "metadata": {
+      "useLiteralContent": true
+    }
+  }
+}

@@ -34,17 +34,13 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     subscriptionId = networkConfig[chainId].subscriptionId;
   }
 
-  const callbackGasLimit = networkConfig[chainId].callbackGasLimit;
+  // const callbackGasLimit = networkConfig[chainId].callbackGasLimit;
   const interval = networkConfig[chainId].interval;
   const entranceFee = networkConfig[chainId].entranceFee;
-  const gasLane = networkConfig[chainId].gasLane;
+  // const gasLane = networkConfig[chainId].gasLane;
 
   const args = [
-    VRFCoordinatorV2MockAddress,
     entranceFee,
-    subscriptionId,
-    callbackGasLimit,
-    gasLane,
     interval,
   ];
 
@@ -54,7 +50,7 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     from: deployer,
     args: args,
     log: true,
-    waitConfirmations: 1,
+    waitConfirmations: developmentChains.includes(network.name) ?  1 : 5,
   });
 
   if (developmentChains.includes(network.name)) {
