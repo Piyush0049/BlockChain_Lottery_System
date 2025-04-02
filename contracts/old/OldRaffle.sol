@@ -65,7 +65,7 @@ contract OldRaffle is VRFConsumerBaseV2, AutomationCompatible {
 
     function checkUpkeep(
         bytes memory
-    ) public view override returns (bool upkeepNeeded, bytes memory) {
+    ) public view override returns (bool upkeepNeeded, bytes memory /*new */  ) {
         bool isOpen = (s_raffle_state == RaffleState.OPEN);
         bool timePassed = (block.timestamp - s_lastTimeStamp) > i_interval;
         bool hasPlayers = s_players.length > 0;
@@ -169,7 +169,6 @@ contract OldRaffle is VRFConsumerBaseV2, AutomationCompatible {
     function getAllPlayersCount() public view returns (uint256) {
         return s_players.length;
     }
-
 
     function getPlayer(uint256 index) public view returns (address payable) {
         return s_players[index];

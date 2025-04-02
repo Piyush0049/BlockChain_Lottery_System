@@ -73,7 +73,6 @@ contract Raffle {
         uint256 winnerIndex = randomNumber % s_players.length;
         s_recentWinner = s_players[winnerIndex];
 
-        // Reset the raffle
         s_players = new address payable[](0);
         s_lastTimeStamp = block.timestamp;
         s_raffleState = RaffleState.OPEN;
