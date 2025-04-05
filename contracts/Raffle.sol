@@ -21,11 +21,9 @@ contract Raffle {
     address payable[] private s_players;
     RaffleState private s_raffleState;
 
-    /* Events */
     event RaffleEnter(address indexed player);
     event WinnerPicked(address indexed winner);
 
-    /* Constructor */
     constructor(uint256 entranceFee, uint256 interval) {
         i_entranceFee = entranceFee;
         i_interval = interval;
@@ -33,7 +31,6 @@ contract Raffle {
         s_lastTimeStamp = block.timestamp;
     }
 
-    /* Enter the raffle */
     function enterRaffle() public payable {
         if (s_raffleState != RaffleState.OPEN) {
             revert Raffle__RaffleNotOpen();
@@ -57,9 +54,7 @@ contract Raffle {
         if (!checkUpkeep()) {
             revert("checkUpkeep_Not_Needed");
         }
-
         s_raffleState = RaffleState.CALCULATING;
-
         uint256 randomNumber = uint256(
             keccak256(
                 abi.encodePacked(
@@ -69,21 +64,17 @@ contract Raffle {
                 )
             )
         );
-
         uint256 winnerIndex = randomNumber % s_players.length;
         s_recentWinner = s_players[winnerIndex];
-
         s_players = new address payable[](0);
         s_lastTimeStamp = block.timestamp;
         s_raffleState = RaffleState.OPEN;
-
         (bool success, ) = s_recentWinner.call{value: address(this).balance}(
             ""
         );
         if (!success) {
             revert Raffle__TransferFailed();
         }
-
         emit WinnerPicked(s_recentWinner);
     }
 
